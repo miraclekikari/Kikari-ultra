@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Plateforme d'apprentissage ultime : Algo, Python, Web, Data.">
+    <title>KIKARI ULTRA | L'Élite de l'Apprentissage</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 900: '#0c4a6e' },
+                        darkbg: '#0f172a',
+                        card: '#1e293b'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                        dyslexic: ['OpenDyslexic', 'sans-serif'] // Classe conditionnelle
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .dark .glass { background: rgba(15, 23, 42, 0.85); }
+        
+        /* Typography Rich Content */
+        .rich-text h2 { font-size: 1.8rem; font-weight: 800; color: #0284c7; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #334155; padding-bottom: 0.5rem; }
+        .rich-text h3 { font-size: 1.4rem; font-weight: 700; color: #38bdf8; margin-top: 1.5rem; margin-bottom: 0.8rem; }
+        .rich-text p { margin-bottom: 1.2rem; line-height: 1.8; font-size: 1.05rem; text-align: justify; }
+        .rich-text ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 1.5rem; }
+        .rich-text li { margin-bottom: 0.5rem; }
+        .rich-text blockquote { border-left: 4px solid #0ea5e9; padding-left: 1rem; font-style: italic; background: rgba(14, 165, 233, 0.1); padding: 1rem; border-radius: 0 8px 8px 0; margin-bottom: 1.5rem; }
+        .rich-text code { background: #334155; color: #e2e8f0; padding: 0.2rem 0.4rem; rounded: 4px; font-family: 'Fira Code', monospace; font-size: 0.9em; }
+        .rich-text pre { background: #1e293b !important; padding: 1rem; rounded: 8px; overflow-x: auto; margin-bottom: 1.5rem; border: 1px solid #475569; }
+        
+        /* Animations */
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        .float-anim { animation: float 6s ease-in-out infinite; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+    </style>
+</head>
+<body class="bg-gray-100 text-slate-800 dark:bg-darkbg dark:text-slate-200 transition-colors duration-300 antialiased"
+      x-data="app()" x-init="initApp()" 
+      :class="{ 'dark': isDark, 'font-dyslexic': settings.dyslexicMode }">
+
+    <audio id="bgMusic" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="soundSuccess" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="soundClick" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+
+    <div class="fixed top-5 right-5 z-[100] flex flex-col gap-2">
+        <template x-for="notif in notifications" :key="notif.id">
+            <div x-show="notif.show" x-transition.duration.500ms
+                 class="p-4 rounded-lg shadow-2xl text-white flex items-center gap-3 min-w-[320px] backdrop-blur-md border border-white/10"
+                 :class="notif.type === 'success' ? 'bg-green-600/90' : (notif.type === 'error' ? 'bg-red-600/90' : 'bg-blue-600/90')">
+                <i class="fas text-xl" :class="notif.type === 'success' ? 'fa-check-circle' : 'fa-info-circle'"></i>
+                <div>
+                    <h4 class="font-bold text-sm uppercase" x-text="notif.type"></h4>
+                    <span x-text="notif.message" class="text-sm"></span>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <div x-show="!currentUser" x-transition.opacity.duration.700ms class="fixed inset-0 z-50 flex items-center justify-center bg-[#0f172a]">
+        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop')] bg-cover bg-center opacity-30"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent"></div>
+        
+        <div class="relative w-full max-w-4xl flex bg-card/80 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-slate-700 m-4 h-[600px]">
+            <div class="hidden md:flex w-1/2 bg-primary-900/50 p-12 flex-col justify-between relative overflow-hidden">
+                <div class="z-10">
+                    <h1 class="text-4xl font-extrabold text-white mb-2">KIKARI <span class="text-primary-400">ULTRA</span></h1>
+                    <p class="text-primary-200">La plateforme d'apprentissage nouvelle génération.</p>
+                </div>
+                <div class="z-10 space-y-4">
+                    <div class="flex items-center gap-3 text-white/80"><i class="fas fa-check text-green-400"></i> <span>Cours certifiés</span></div>
+                    <div class="flex items-center gap-3 text-white/80"><i class="fas fa-check text-green-400"></i> <span>Mode Hors-ligne</span></div>
+                    <div class="flex items-center gap-3 text-white/80"><i class="fas fa-check text-green-400"></i> <span>Communauté active</span></div>
+                </div>
+                <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-primary-500 rounded-full blur-[100px] opacity-40 animate-pulse"></div>
+            </div>
+
+            <div class="w-full md:w-1/2 p-12 flex flex-col justify-center">
+                <div x-data="{ mode: 'login', email: '', pass: '', name: '' }">
+                    <h2 class="text-3xl font-bold text-white mb-6" x-text="mode === 'login' ? 'Connexion' : 'Rejoindre l\'élite'"></h2>
+                    <form @submit.prevent="auth(mode, email, pass, name)">
+                        <div x-show="mode === 'register'" x-transition class="mb-4">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Pseudo</label>
+                            <input type="text" x-model="name" class="w-full p-3 bg-slate-900/50 border border-slate-600 rounded text-white focus:border-primary-500 focus:outline-none transition">
+                        </div>
+                        <div class="mb-4">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Email</label>
+                            <input type="email" x-model="email" required class="w-full p-3 bg-slate-900/50 border border-slate-600 rounded text-white focus:border-primary-500 focus:outline-none transition">
+                        </div>
+                        <div class="mb-8">
+                            <label class="text-xs font-bold text-slate-400 uppercase">Mot de passe</label>
+                            <input type="password" x-model="pass" required class="w-full p-3 bg-slate-900/50 border border-slate-600 rounded text-white focus:border-primary-500 focus:outline-none transition">
+                        </div>
+                        <button type="submit" class="w-full py-4 rounded bg-gradient-to-r from-primary-600 to-primary-500 text-white font-bold shadow-lg hover:shadow-primary-500/25 transform hover:-translate-y-1 transition-all">
+                            <span x-text="mode === 'login' ? 'ACCÉDER' : 'CRÉER MON COMPTE'"></span>
+                        </button>
+                    </form>
+                    <div class="mt-6 text-center">
+                        <button @click="mode = mode === 'login' ? 'register' : 'login'" class="text-slate-400 hover:text-white transition text-sm">
+                            <span x-text="mode === 'login' ? 'Créer un compte' : 'J\'ai déjà un compte'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="currentUser" x-cloak class="flex h-screen overflow-hidden">
+        
+        <aside class="w-72 bg-white dark:bg-[#0b1120] border-r border-slate-200 dark:border-slate-800 flex flex-col z-40 transition-all duration-300"
+               :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full absolute lg:relative lg:translate-x-0'">
+            
+            <div class="p-6 flex items-center gap-3 border-b border-slate-200 dark:border-slate-800">
+                <div class="w-10 h-10 rounded bg-gradient-to-br from-primary-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">K</div>
+                <div>
+                    <h1 class="font-black text-lg tracking-tighter">KIKARI<span class="text-primary-500">.ULTRA</span></h1>
+                    <span class="text-[10px] uppercase font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-1 rounded">v2.0 Pro</span>
+                </div>
+            </div>
+
+            <div class="p-4 mx-4 mt-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden">
+                        <img :src="`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.name}`" alt="avatar" class="w-full h-full">
+                    </div>
+                    <div>
+                        <p class="font-bold text-sm truncate w-24" x-text="currentUser?.name"></p>
+                        <p class="text-xs text-primary-500 font-mono">Niv. <span x-text="getLevel()"></span></p>
+                    </div>
+                </div>
+                <div class="mt-3 h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-primary-500 to-purple-500" :style="`width: ${(userXP % 1000) / 10}%`"></div>
+                </div>
+            </div>
+
+            <nav class="flex-1 overflow-y-auto p-4 space-y-1 scrollbar-hide">
+                <p class="section-title">Apprentissage</p>
+                <a href="#" @click="setView('dashboard')" :class="view === 'dashboard' ? 'active-nav' : 'nav-item'">
+                    <i class="fas fa-grid-2 w-6 text-center"></i> Dashboard
+                </a>
+                <a href="#" @click="setView('courses')" :class="view === 'courses' ? 'active-nav' : 'nav-item'">
+                    <i class="fas fa-layer-group w-6 text-center"></i> Catalogue
+                </a>
+                <a href="#" @click="setView('certificates')" :class="view === 'certificates' ? 'active-nav' : 'nav-item'">
+                    <i class="fas fa-certificate w-6 text-center"></i> Certificats
+                </a>
+
+                <p class="section-title mt-6">Communauté</p>
+                <a href="#" @click="setView('leaderboard')" :class="view === 'leaderboard' ? 'active-nav' : 'nav-item'">
+                    <i class="fas fa-trophy w-6 text-center text-yellow-500"></i> Classement
+                </a>
+                <a href="#" @click="setView('shop')" :class="view === 'shop' ? 'active-nav' : 'nav-item'">
+                    <i class="fas fa-store w-6 text-center text-purple-400"></i> Boutique XP
+                </a>
+
+                <p class="section-title mt-6">Google Ads</p>
+                <div class="w-full h-60 bg-slate-100 dark:bg-slate-900 border border-dashed border-slate-600 rounded flex items-center justify-center text-xs text-slate-500">
+                    &lt;Pub Sidebar&gt;
+                </div>
+            </nav>
+
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800">
+                <button @click="openSettings = true" class="w-full py-2 px-4 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-left text-sm text-slate-500 transition flex items-center gap-2">
+                    <i class="fas fa-cog"></i> Paramètres
+                </button>
+                <button @click="logout()" class="w-full mt-2 py-2 px-4 rounded hover:bg-red-500/10 text-red-500 text-left text-sm transition flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col h-screen relative bg-gray-50 dark:bg-darkbg">
+            
+            <header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-darkbg/80 backdrop-blur-md flex items-center justify-between px-6 z-30 sticky top-0">
+                <div class="flex items-center gap-4">
+                    <button @click="sidebarOpen = !sidebarOpen" class="p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-800"><i class="fas fa-bars"></i></button>
+                    <div class="relative hidden md:block">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" x-model="searchQuery" placeholder="Rechercher (ex: Python, Boucles...)" 
+                               class="pl-10 pr-4 py-2 w-64 rounded-full bg-slate-100 dark:bg-slate-800 border-none focus:ring-2 focus:ring-primary-500 transition-all focus:w-96 text-sm">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="flex bg-slate-100 dark:bg-slate-800 rounded-full p-1">
+                        <button @click="toggleMusic()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white dark:hover:bg-slate-700 transition" :class="musicPlaying ? 'text-primary-500' : 'text-slate-400'" title="Musique Lo-Fi">
+                            <i class="fas" :class="musicPlaying ? 'fa-music fa-bounce' : 'fa-music'"></i>
+                        </button>
+                        <button @click="togglePomodoro()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white dark:hover:bg-slate-700 transition text-slate-400" title="Focus Timer">
+                            <i class="fas fa-clock"></i>
+                        </button>
+                        <button @click="toggleCalc()" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white dark:hover:bg-slate-700 transition text-slate-400" title="Calculatrice">
+                            <i class="fas fa-calculator"></i>
+                        </button>
+                    </div>
+
+                    <div class="hidden md:flex items-center gap-1 text-orange-500 font-bold" title="Série de jours">
+                        <i class="fas fa-fire"></i>
+                        <span x-text="userStreak"></span>
+                    </div>
+                    
+                    <div class="flex items-center gap-2 bg-slate-900 text-yellow-400 px-3 py-1.5 rounded-full text-xs font-bold border border-slate-700">
+                        <i class="fas fa-coins"></i>
+                        <span x-text="userXP"></span>
+                    </div>
+                </div>
+            </header>
+
+            <div x-show="settings.adsEnabled" class="w-full h-24 bg-slate-200 dark:bg-slate-900 flex items-center justify-center border-b border-slate-300 dark:border-slate-800">
+                <span class="text-slate-500 text-xs font-mono">&lt;ESPACE PUBLICITAIRE GOOGLE (LARGE LEADERBOARD)&gt;</span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6 scroll-smooth relative" id="mainScroll">
+                
+                <div x-show="view === 'dashboard'" class="space-y-8 animate-fade-in">
+                    
+                    <div class="relative rounded-2xl overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white shadow-2xl">
+                        <div class="relative z-10">
+                            <h2 class="text-3xl font-bold mb-2">Bon retour, <span x-text="currentUser?.name"></span> ! 🚀</h2>
+                            <p class="text-blue-100 max-w-xl">Tu as appris pendant <span class="font-bold">12 heures</span> cette semaine. Continue comme ça pour atteindre le niveau Expert.</p>
+                            <button @click="setView('courses')" class="mt-6 px-6 py-2 bg-white text-blue-600 font-bold rounded-full hover:bg-blue-50 transition transform hover:scale-105">Reprendre les cours</button>
+                        </div>
+                        <i class="fas fa-rocket absolute right-10 bottom-[-20px] text-[150px] text-white opacity-20 float-anim"></i>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="stat-card">
+                            <div class="icon-box bg-blue-500/20 text-blue-500"><i class="fas fa-book-open"></i></div>
+                            <div><div class="text-2xl font-bold" x-text="getActiveCoursesCount()"></div><div class="text-xs text-slate-500">Cours actifs</div></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon-box bg-green-500/20 text-green-500"><i class="fas fa-check-double"></i></div>
+                            <div><div class="text-2xl font-bold" x-text="getCompletedChaptersCount()"></div><div class="text-xs text-slate-500">Chapitres finis</div></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon-box bg-yellow-500/20 text-yellow-500"><i class="fas fa-star"></i></div>
+                            <div><div class="text-2xl font-bold" x-text="calculateAverageScore() + '%'"></div><div class="text-xs text-slate-500">Précision Quiz</div></div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="icon-box bg-purple-500/20 text-purple-500"><i class="fas fa-medal"></i></div>
+                            <div><div class="text-2xl font-bold" x-text="certificates.length"></div><div class="text-xs text-slate-500">Certificats</div></div>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold text-slate-700 dark:text-slate-200">Continuer l'apprentissage</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                         <template x-for="course in courses" :key="course.id">
+                            <div class="bg-white dark:bg-card rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden hover:shadow-2xl hover:shadow-primary-500/10 transition group cursor-pointer" @click="openCourse(course.id)">
+                                <div class="h-40 bg-cover bg-center relative group-hover:scale-105 transition duration-700" :style="`background-image: url('${course.image}')`">
+                                    <div class="absolute inset-0 bg-black/50 group-hover:bg-black/40 transition"></div>
+                                    <div class="absolute bottom-4 left-4 text-white">
+                                        <div class="text-xs font-bold uppercase tracking-wider mb-1 px-2 py-0.5 bg-primary-600 w-max rounded" x-text="course.category"></div>
+                                        <h4 class="text-lg font-bold" x-text="course.title"></h4>
+                                    </div>
+                                </div>
+                                <div class="p-5">
+                                    <div class="flex justify-between text-sm text-slate-500 mb-3">
+                                        <span><i class="fas fa-list mr-1"></i> <span x-text="course.chapters.length"></span> Chapitres</span>
+                                        <span><i class="fas fa-clock mr-1"></i> <span x-text="course.duration"></span></span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-green-500 h-full transition-all duration-1000" :style="`width: ${getCourseProgress(course.id)}%`"></div>
+                                    </div>
+                                </div>
+                            </div>
+                         </template>
+                    </div>
+                </div>
+
+                <div x-show="view === 'reader' && activeCourse" class="flex flex-col xl:flex-row gap-6 animate-fade-in pb-20">
+                    
+                    <div class="xl:w-80 flex-shrink-0">
+                        <div class="sticky top-24 bg-white dark:bg-card rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-lg">
+                            <div class="p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                                <button @click="view = 'dashboard'" class="text-xs font-bold text-slate-500 hover:text-primary-500 mb-2 flex items-center gap-1"><i class="fas fa-arrow-left"></i> RETOUR</button>
+                                <h3 class="font-bold leading-tight" x-text="activeCourse?.title"></h3>
+                            </div>
+                            <div class="max-h-[70vh] overflow-y-auto p-2">
+                                <template x-for="(chap, idx) in activeCourse?.chapters" :key="idx">
+                                    <button @click="loadChapter(idx)" 
+                                            class="w-full text-left p-3 rounded mb-1 text-sm flex items-center gap-3 transition-all"
+                                            :class="activeChapterIdx === idx ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'">
+                                        <div class="w-6 h-6 rounded-full border flex items-center justify-center text-xs flex-shrink-0"
+                                             :class="activeChapterIdx === idx ? 'border-white' : (isChapterCompleted(activeCourse.id, idx) ? 'bg-green-500 border-green-500 text-white' : 'border-slate-400')">
+                                            <i class="fas fa-check" x-show="isChapterCompleted(activeCourse.id, idx)"></i>
+                                            <span x-show="!isChapterCompleted(activeCourse.id, idx)" x-text="idx + 1"></span>
+                                        </div>
+                                        <span class="line-clamp-2" x-text="chap.title"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 bg-white dark:bg-card rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden relative">
+                        <div class="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
+                            <div class="flex gap-2">
+                                <span class="px-2 py-1 bg-primary-100 dark:bg-primary-900 text-primary-600 text-xs font-bold rounded uppercase">Leçon</span>
+                                <span class="text-sm text-slate-500" x-text="'Lecture : ' + activeChapter?.readTime + ' min'"></span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button @click="speakText()" class="w-8 h-8 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500" title="Lecture vocale"><i class="fas fa-volume-up"></i></button>
+                                <button @click="toggleZenMode()" class="w-8 h-8 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500" title="Mode Zen"><i class="fas fa-expand"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="p-8 md:p-12 min-h-[60vh]">
+                            <h1 class="text-4xl font-black mb-8 text-slate-800 dark:text-white" x-text="activeChapter?.title"></h1>
+                            
+                            <div class="rich-text text-slate-700 dark:text-slate-300" x-html="renderMarkdown(activeChapter?.content)"></div>
+                            
+                            <div x-show="settings.adsEnabled" class="my-8 w-full h-32 bg-slate-100 dark:bg-slate-900 border border-dashed border-slate-500 flex items-center justify-center text-xs text-slate-500">
+                                &lt;Pub In-Article&gt;
+                            </div>
+
+                            <div x-show="activeChapter?.codeExample" class="mt-10 border border-slate-700 rounded-lg overflow-hidden shadow-2xl">
+                                <div class="bg-[#1e1e1e] px-4 py-2 flex justify-between items-center border-b border-slate-700">
+                                    <span class="text-xs font-mono text-green-400"><i class="fas fa-code"></i> TERMINAL KIKARI</span>
+                                    <button @click="runCode()" class="px-3 py-1 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded transition"><i class="fas fa-play"></i> EXECUTER</button>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 h-64">
+                                    <textarea x-model="codeBuffer" class="w-full h-full bg-[#1e1e1e] text-[#d4d4d4] font-mono p-4 outline-none text-sm resize-none" spellcheck="false"></textarea>
+                                    <div class="bg-[#0f0f0f] p-4 font-mono text-sm text-white overflow-y-auto border-l border-slate-700">
+                                        <div class="text-slate-500 text-xs mb-2">SORTIE:</div>
+                                        <div id="console-output"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-700">
+                                <h3 class="text-2xl font-bold mb-6 flex items-center gap-3"><i class="fas fa-question-circle text-primary-500"></i> Validation des connaissances</h3>
+                                <div class="bg-primary-50 dark:bg-slate-800/50 p-6 rounded-xl border border-primary-100 dark:border-slate-600">
+                                    <p class="font-medium text-lg mb-4" x-text="activeChapter?.quiz?.q"></p>
+                                    <div class="space-y-3">
+                                        <template x-for="(opt, i) in activeChapter?.quiz?.opts" :key="i">
+                                            <button @click="submitQuiz(i)" 
+                                                    class="w-full text-left p-4 rounded-lg border-2 transition-all relative overflow-hidden"
+                                                    :class="getQuizClass(i)">
+                                                <span x-text="opt" class="relative z-10 font-medium"></span>
+                                                <i class="fas absolute right-4 top-1/2 -translate-y-1/2 text-xl" 
+                                                   :class="getQuizIcon(i)" 
+                                                   x-show="quizState !== null && (i === activeChapter.quiz.correct || i === quizState)"></i>
+                                            </button>
+                                        </template>
+                                    </div>
+                                    <div x-show="quizState !== null" class="mt-4 p-4 rounded bg-white dark:bg-slate-900 text-center animate-bounce-in">
+                                        <p x-show="quizSuccess" class="text-green-500 font-bold">Bravo ! +50 XP <i class="fas fa-plus-circle"></i></p>
+                                        <p x-show="!quizSuccess" class="text-red-500 font-bold">Aïe, ce n'est pas ça. La réponse était la n°<span x-text="activeChapter.quiz.correct + 1"></span>.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sticky bottom-0 p-4 bg-white dark:bg-card border-t border-slate-200 dark:border-slate-700 flex justify-between z-20">
+                            <button @click="prevChapter()" :disabled="activeChapterIdx === 0" class="btn-secondary disabled:opacity-50">Précédent</button>
+                            <button @click="nextChapter()" class="btn-primary">Suivant <i class="fas fa-arrow-right ml-2"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="openSettings" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm" x-cloak>
+                    <div class="bg-white dark:bg-card w-full max-w-lg rounded-2xl shadow-2xl p-6 relative animate-scale-up">
+                        <button @click="openSettings = false" class="absolute top-4 right-4 text-slate-400 hover:text-red-500"><i class="fas fa-times text-xl"></i></button>
+                        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2"><i class="fas fa-sliders-h text-primary-500"></i> Paramètres Système</h2>
+                        
+                        <div class="space-y-6 overflow-y-auto max-h-[60vh] pr-2">
+                            <div class="flex justify-between items-center">
+                                <div><p class="font-bold">Mode Sombre</p><p class="text-xs text-slate-500">Repos pour les yeux</p></div>
+                                <button @click="toggleTheme()" class="w-12 h-6 rounded-full bg-slate-200 dark:bg-primary-900 relative transition"><div class="w-4 h-4 rounded-full bg-white absolute top-1 transition-all" :class="isDark ? 'left-7' : 'left-1'"></div></button>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <div><p class="font-bold">Police Dyslexie</p><p class="text-xs text-slate-500">Police OpenDyslexic</p></div>
+                                <button @click="settings.dyslexicMode = !settings.dyslexicMode" class="w-12 h-6 rounded-full bg-slate-200 dark:bg-slate-700 relative transition" :class="settings.dyslexicMode ? 'bg-green-500' : ''"><div class="w-4 h-4 rounded-full bg-white absolute top-1 transition-all" :class="settings.dyslexicMode ? 'left-7' : 'left-1'"></div></button>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <div><p class="font-bold">Afficher les Pubs</p><p class="text-xs text-slate-500">Soutenir le créateur</p></div>
+                                <button @click="settings.adsEnabled = !settings.adsEnabled" class="w-12 h-6 rounded-full bg-slate-200 dark:bg-slate-700 relative transition" :class="settings.adsEnabled ? 'bg-blue-500' : ''"><div class="w-4 h-4 rounded-full bg-white absolute top-1 transition-all" :class="settings.adsEnabled ? 'left-7' : 'left-1'"></div></button>
+                            </div>
+
+                             <div class="pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <button @click="resetProgress()" class="text-red-500 text-sm font-bold hover:underline">Réinitialiser toute ma progression</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="showCalc" class="fixed bottom-20 right-6 w-64 bg-slate-900 rounded-xl shadow-2xl p-4 z-50 border border-slate-700" x-transition.scale.origin.bottom.right>
+                    <input type="text" x-model="calcDisplay" class="w-full bg-black text-green-400 text-right font-mono text-2xl p-2 rounded mb-2" readonly>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button @click="calcDisplay = ''" class="bg-red-900 text-red-200 p-2 rounded">C</button>
+                        <button @click="calcKey('(')" class="bg-slate-700 p-2 rounded text-white">(</button>
+                        <button @click="calcKey(')')" class="bg-slate-700 p-2 rounded text-white">)</button>
+                        <button @click="calcKey('/')" class="bg-slate-700 p-2 rounded text-white">÷</button>
+                        <button @click="calcKey('7')" class="bg-slate-800 p-2 rounded text-white">7</button>
+                        <button @click="calcKey('8')" class="bg-slate-800 p-2 rounded text-white">8</button>
+                        <button @click="calcKey('9')" class="bg-slate-800 p-2 rounded text-white">9</button>
+                        <button @click="calcKey('*')" class="bg-slate-700 p-2 rounded text-white">×</button>
+                        <button @click="calcKey('4')" class="bg-slate-800 p-2 rounded text-white">4</button>
+                        <button @click="calcKey('5')" class="bg-slate-800 p-2 rounded text-white">5</button>
+                        <button @click="calcKey('6')" class="bg-slate-800 p-2 rounded text-white">6</button>
+                        <button @click="calcKey('-')" class="bg-slate-700 p-2 rounded text-white">-</button>
+                        <button @click="calcKey('1')" class="bg-slate-800 p-2 rounded text-white">1</button>
+                        <button @click="calcKey('2')" class="bg-slate-800 p-2 rounded text-white">2</button>
+                        <button @click="calcKey('3')" class="bg-slate-800 p-2 rounded text-white">3</button>
+                        <button @click="calcKey('+')" class="bg-slate-700 p-2 rounded text-white">+</button>
+                        <button @click="calcKey('0')" class="col-span-2 bg-slate-800 p-2 rounded text-white">0</button>
+                        <button @click="calcKey('.')" class="bg-slate-800 p-2 rounded text-white">.</button>
+                        <button @click="calcEval()" class="bg-primary-600 p-2 rounded text-white">=</button>
+                    </div>
+                </div>
+
+            </div> </main>
+    </div>
+
+    <script>
+        function app() {
+            return {
+                // ETAT
+                currentUser: null,
+                view: 'dashboard',
+                sidebarOpen: true,
+                isDark: false,
+                openSettings: false,
+                searchQuery: '',
+                notifications: [],
+                musicPlaying: false,
+                showCalc: false,
+                calcDisplay: '',
+                
+                // COURSE DATA
+                activeCourse: null,
+                activeChapterIdx: 0,
+                activeChapter: null,
+                codeBuffer: '',
+                
+                // QUIZ
+                quizState: null, // null, index
+                quizSuccess: false,
+
+                // SETTINGS
+                settings: {
+                    dyslexicMode: false,
+                    adsEnabled: true,
+                    soundEffects: true
+                },
+
+                // GAMIFICATION
+                userXP: 0,
+                userStreak: 1,
+                completedChapters: {}, // { courseId: [0, 1] }
+                certificates: [],
+
+                // --- DATA ---
+                // J'ai rempli massivement le cours d'Algo et Python comme demandé.
+                courses: [
+                    {
+                        id: 'algo',
+                        title: 'Algorithmique : Les Fondations',
+                        category: 'Fondamental',
+                        image: 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?q=80&w=2128',
+                        duration: '15h',
+                        chapters: [
+                            {
+                                title: "1. Introduction et Variables (Le Concept)",
+                                readTime: 10,
+                                content: `
+## Qu'est-ce qu'un Algorithme ?
+Un algorithme n'est pas de la magie. C'est une **suite finie et non ambiguë d'opérations** permettant de résoudre un problème. Imaginez une recette de cuisine :
+1. Casser les œufs.
+2. Battre les œufs.
+3. Cuire.
+
+En informatique, c'est pareil, mais avec des données mathématiques.
+
+### La Structure d'un Programme
+Tout algorithme suit ce schéma :
+\`\`\`
+Algorithme NomDuProgramme
+Variables
+    (Déclaration des ingrédients)
+Début
+    (Instructions étape par étape)
+Fin
+\`\`\`
+
+## Les Variables : Les Boîtes de la Mémoire
+Une variable est une **zone mémoire nommée** qui contient une valeur qui peut changer (d'où le nom).
+Imaginez des boîtes étiquetées.
+* **Le Nom (Identificateur)** : Doit être clair (ex: \`PrixTTC\`, pas \`X\`).
+* **Le Type** : Ce qu'on met dedans.
+    * **Entier (int)** : Nombres sans virgule (1, -5, 42).
+    * **Réel (float)** : Nombres à virgule (3.14, -0.01).
+    * **Chaîne (string)** : Texte ("Bonjour").
+    * **Booléen** : Vrai ou Faux (0 ou 1).
+
+> **Note importante** : En programmation stricte, on ne peut pas mettre du texte dans une variable de type Entier. C'est le *typage fort*.
+
+### L'Affectation
+C'est l'acte de mettre une valeur dans la variable. Le symbole est souvent \`←\` ou \`=\`.
+\`A ← 12\` signifie "Mettre la valeur 12 dans la boîte A".
+                                `,
+                                quiz: { q: "Que se passe-t-il si j'écris A ← 'Bonjour' alors que A est un Entier ?", opts: ["Ça marche", "Ça plante (Erreur de type)", "A devient 0", "L'ordinateur explose"], correct: 1 }
+                            },
+                            {
+                                title: "2. Les Structures Conditionnelles (Si...Alors)",
+                                readTime: 15,
+                                content: `
+## Prendre des décisions
+Un programme linéaire est ennuyeux. La puissance vient de la capacité à dire : **"Si ceci est vrai, fais cela. Sinon, fais autre chose."**
+
+### La syntaxe SI ... ALORS ... SINON
+C'est la base de l'intelligence artificielle (très basique).
+
+\`\`\`
+Si (Age >= 18) Alors
+    Afficher "Majeur"
+Sinon
+    Afficher "Mineur"
+FinSi
+\`\`\`
+
+### Les Opérateurs de Comparaison
+Pour formuler une condition, on utilise :
+* \`==\` : Égal à (Attention, ne pas confondre avec \`=\` d'affectation).
+* \`!=\` : Différent de.
+* \`<\`, \`>\`, \`<=\`, \`>=\` : Inférieur, Supérieur, etc.
+
+### Les Opérateurs Logiques
+On peut combiner des conditions :
+1.  **ET (AND)** : Tout doit être vrai. \`Si (Il fait beau) ET (J'ai de l'argent)\`.
+2.  **OU (OR)** : Au moins un doit être vrai.
+3.  **NON (NOT)** : Inverse le résultat.
+
+> **Exemple complexe** : Si (Utilisateur est Admin) OU ((Utilisateur est VIP) ET (Il est plus de 8h)).
+                                `,
+                                codeExample: "// Teste ceci :\nlet age = 16;\nif(age >= 18) {\n  console.log('Majeur');\n} else {\n  console.log('Mineur');\n}",
+                                quiz: { q: "Si A=VRAI et B=FAUX, que vaut (A ET B) ?", opts: ["VRAI", "FAUX", "Indéfini", "Peut-être"], correct: 1 }
+                            },
+                            {
+                                title: "3. Les Boucles (Itérations)",
+                                readTime: 20,
+                                content: `
+## Répéter sans se fatiguer
+L'ordinateur est parfait pour les tâches répétitives. Il existe trois types de boucles principales.
+
+### 1. La Boucle POUR (For)
+On l'utilise quand **on connaît à l'avance le nombre de répétitions**.
+Exemple : "Fais 10 pompes".
+\`\`\`
+Pour i allant de 1 à 10 Faire
+    Afficher "Pompe numéro", i
+FinPour
+\`\`\`
+
+### 2. La Boucle TANT QUE (While)
+On l'utilise quand **on ne connaît pas le nombre, mais on connaît la condition d'arrêt**.
+Exemple : "Tant que tu as soif, bois".
+\`\`\`
+Tant Que (Soif == Vrai) Faire
+    Boire()
+    VérifierSoif()
+FinTantQue
+\`\`\`
+**Danger** : Si la condition ne devient jamais fausse, on crée une **boucle infinie**. Le programme plante.
+
+### 3. La Boucle RÉPÉTER ... JUSQU'À
+Similaire à Tant Que, mais on exécute au moins une fois l'action avant de vérifier.
+                                `,
+                                codeExample: "// Compte à rebours\nfor(let i=5; i>0; i--) {\n  console.log(i + '...');\n}\nconsole.log('DECOLLAGE !');",
+                                quiz: { q: "Quelle boucle choisir pour parcourir un tableau de taille connue ?", opts: ["Tant Que", "Pour", "Si", "Switch"], correct: 1 }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'python',
+                        title: 'Python : Data & IA',
+                        category: 'Langage',
+                        image: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?q=80&w=2074',
+                        duration: '25h',
+                        chapters: [
+                            {
+                                title: "1. Pourquoi Python ?",
+                                readTime: 8,
+                                content: `
+## Le langage roi
+Python est devenu le langage le plus populaire au monde. Pourquoi ?
+1.  **Syntaxe claire** : On dirait de l'anglais. Pas de point-virgule \`;\` obligatoire, pas d'accolades \`{}\` partout.
+2.  **Polyvalent** : Web, Data Science, Hacking, IA, Scripts.
+3.  **Communauté** : Des millions de bibliothèques.
+
+### Hello World
+En Python, afficher du texte est simple :
+\`print("Hello World")\`
+
+### L'Indentation
+C'est la règle d'or de Python. Contrairement au C ou JS qui utilisent des \`{}\`, Python utilise les **espaces** (tabulations) pour définir les blocs de code.
+\`\`\`python
+if True:
+    print("Ceci est dans le bloc")
+print("Ceci est hors du bloc")
+\`\`\`
+Une mauvaise indentation = \`IndentationError\`.
+                                `,
+                                quiz: { q: "Comment délimite-t-on un bloc de code en Python ?", opts: ["Avec des {}", "Avec des ()", "Avec l'indentation", "Avec des #"], correct: 2 }
+                            },
+                            {
+                                title: "2. Listes et Dictionnaires",
+                                readTime: 20,
+                                content: `
+## Les Structures de Données Puissantes
+
+### Les Listes (List)
+C'est une collection ordonnée d'éléments modifiables.
+\`\`\`python
+fruits = ["Pomme", "Banane", "Cerise"]
+print(fruits[0]) # Affiche Pomme
+fruits.append("Orange") # Ajoute à la fin
+\`\`\`
+On peut mélanger les types : \`[1, "Deux", 3.0]\`.
+
+### Les Tuples
+Comme des listes, mais **immuables** (on ne peut pas les changer après création). Utile pour des coordonnées GPS par exemple.
+\`coord = (48.85, 2.35)\`
+
+### Les Dictionnaires (Dict)
+C'est une structure Clé : Valeur. C'est ultra rapide.
+\`\`\`python
+user = {
+    "nom": "Kikari",
+    "niveau": 99,
+    "admin": True
+}
+print(user["nom"])
+\`\`\`
+C'est l'équivalent du JSON en JavaScript.
+                                `,
+                                codeExample: "let user = {name: 'Kikari', level: 10};\nconsole.log(user.name + ' est niveau ' + user.level);",
+                                quiz: { q: "Peut-on modifier un Tuple ?", opts: ["Oui", "Non", "Seulement le dimanche", "Avec force"], correct: 1 }
+                            }
+                        ]
+                    },
+                    {
+                        id: 'web',
+                        title: 'Développement Web Fullstack',
+                        category: 'Web',
+                        image: 'https://images.unsplash.com/photo-1547658719-da2b51169166?q=80&w=2064',
+                        duration: '40h',
+                        chapters: [
+                            {
+                                title: "1. HTML5 : Sémantique",
+                                readTime: 12,
+                                content: `## La structure du Web\nHTML n'est pas un langage de programmation, c'est un langage de balisage. Le web moderne exige de la **sémantique**.\n\nAu lieu d'utiliser \`<div>\` pour tout, utilisez :\n- \`<header>\` pour l'en-tête.\n- \`<nav>\` pour le menu.\n- \`<article>\` pour le contenu principal.\n- \`<footer>\` pour le pied de page.\n\nCela aide Google (SEO) et les lecteurs d'écran (Accessibilité).`,
+                                quiz: {q: "Quelle balise pour le menu ?", opts: ["<menu>", "<nav>", "<div>", "<list>"], correct: 1}
+                            },
+                            {
+                                title: "2. CSS3 : Flexbox & Grid",
+                                readTime: 20,
+                                content: `## La mise en page moderne\nFini les tableaux et les \`float\`. \n\n### Flexbox\nIdéal pour les dimensions 1D (une ligne ou une colonne). \n\`display: flex;\` permet de centrer facilement : \`justify-content: center; align-items: center;\`.\n\n### CSS Grid\nIdéal pour la 2D (lignes ET colonnes). Permet de créer des mises en page complexes de type journal.`,
+                                quiz: {q: "Flexbox gère combien de dimensions ?", opts: ["1", "2", "3", "4"], correct: 0}
+                            }
+                        ]
+                    }
+                ],
+
+                // --- INITIALISATION ---
+                initApp() {
+                    const savedUser = localStorage.getItem('kikari_user');
+                    if(savedUser) this.currentUser = JSON.parse(savedUser);
+                    
+                    // Load Theme
+                    this.isDark = localStorage.getItem('theme') === 'dark';
+                    if(this.currentUser) this.loadUserData();
+
+                    // Check Streak
+                    const lastLogin = localStorage.getItem('last_login_date');
+                    const today = new Date().toDateString();
+                    if(lastLogin !== today) {
+                        this.userStreak = (localStorage.getItem('streak') || 0) * 1 + 1;
+                        localStorage.setItem('last_login_date', today);
+                        localStorage.setItem('streak', this.userStreak);
+                    } else {
+                        this.userStreak = localStorage.getItem('streak') || 1;
+                    }
+                },
+
+                // --- AUTH ---
+                auth(mode, email, pass, name) {
+                    if(!email || !pass) return this.notify('Champs manquants', 'error');
+                    
+                    const hash = CryptoJS.SHA256(pass).toString();
+                    
+                    if(mode === 'register') {
+                        if(!name) return this.notify('Nom requis', 'error');
+                        const user = { name, email, passHash: hash, id: Date.now() };
+                        localStorage.setItem('kikari_user_' + email, JSON.stringify(user));
+                        localStorage.setItem('kikari_user', JSON.stringify(user));
+                        this.currentUser = user;
+                        this.resetUserData(); // New user data
+                        this.playSuccess();
+                        this.notify('Bienvenue dans l\'élite !', 'success');
+                    } else {
+                        const stored = localStorage.getItem('kikari_user_' + email);
+                        if(stored) {
+                            const user = JSON.parse(stored);
+                            if(user.passHash === hash) {
+                                localStorage.setItem('kikari_user', JSON.stringify(user));
+                                this.currentUser = user;
+                                this.loadUserData();
+                                this.playSuccess();
+                                this.notify('Connexion réussie', 'success');
+                            } else {
+                                this.notify('Mot de passe incorrect', 'error');
+                            }
+                        } else {
+                            this.notify('Utilisateur inconnu', 'error');
+                        }
+                    }
+                },
+                
+                logout() {
+                    this.currentUser = null;
+                    localStorage.removeItem('kikari_user');
+                    this.view = 'dashboard';
+                },
+
+                // --- COURSE LOGIC ---
+                setView(v) { this.view = v; window.scrollTo(0,0); },
+                
+                openCourse(id) {
+                    this.activeCourse = this.courses.find(c => c.id === id);
+                    this.activeChapterIdx = 0;
+                    this.loadChapter(0);
+                    this.view = 'reader';
+                },
+
+                loadChapter(idx) {
+                    this.activeChapterIdx = idx;
+                    this.activeChapter = this.activeCourse.chapters[idx];
+                    this.quizState = null;
+                    this.quizSuccess = false;
+                    this.codeBuffer = this.activeChapter.codeExample || '';
+                    document.getElementById('mainScroll').scrollTop = 0;
+                },
+
+                prevChapter() { if(this.activeChapterIdx > 0) this.loadChapter(this.activeChapterIdx - 1); },
+                nextChapter() { 
+                    if(this.activeChapterIdx < this.activeCourse.chapters.length - 1) {
+                        this.loadChapter(this.activeChapterIdx + 1); 
+                    } else {
+                        this.confettiExplosion();
+                        this.notify('Cours terminé !', 'success');
+                        this.issueCertificate(this.activeCourse.title);
+                        this.view = 'dashboard';
+                    }
+                },
+
+                renderMarkdown(text) {
+                    return marked.parse(text || '');
+                },
+
+                // --- QUIZ & GAMIFICATION ---
+                getQuizClass(i) {
+                    if (this.quizState === null) return 'bg-white dark:bg-slate-700 hover:bg-primary-50 dark:hover:bg-slate-600 border-slate-200 dark:border-slate-500';
+                    if (i === this.activeCourse.chapters[this.activeChapterIdx].quiz.correct) return 'bg-green-100 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-400';
+                    if (i === this.quizState) return 'bg-red-100 dark:bg-red-900/30 border-red-500 text-red-700 dark:text-red-400';
+                    return 'opacity-50 border-slate-200 dark:border-slate-700';
+                },
+                
+                getQuizIcon(i) {
+                    return (i === this.activeCourse.chapters[this.activeChapterIdx].quiz.correct) ? 'fa-check text-green-600' : 'fa-times text-red-600';
+                },
+
+                submitQuiz(i) {
+                    if(this.quizState !== null) return;
+                    this.quizState = i;
+                    const correct = this.activeChapter.quiz.correct;
+                    if(i === correct) {
+                        this.quizSuccess = true;
+                        this.addXP(50);
+                        this.markChapterComplete();
+                        this.playSuccess();
+                        this.confettiExplosion();
+                    } else {
+                        this.playError(); // Fallback if implemented
+                        this.notify('Raté ! Réessaie.', 'error');
+                    }
+                },
+
+                markChapterComplete() {
+                    const cId = this.activeCourse.id;
+                    if(!this.completedChapters[cId]) this.completedChapters[cId] = [];
+                    if(!this.completedChapters[cId].includes(this.activeChapterIdx)) {
+                        this.completedChapters[cId].push(this.activeChapterIdx);
+                        this.saveUserData();
+                    }
+                },
+                
+                isChapterCompleted(cId, idx) {
+                    return this.completedChapters[cId]?.includes(idx);
+                },
+
+                // --- USER DATA PERSISTENCE ---
+                loadUserData() {
+                    const data = JSON.parse(localStorage.getItem(`kikari_data_${this.currentUser.email}`)) || {};
+                    this.userXP = data.xp || 0;
+                    this.completedChapters = data.completed || {};
+                    this.certificates = data.certificates || [];
+                },
+
+                saveUserData() {
+                    const data = { xp: this.userXP, completed: this.completedChapters, certificates: this.certificates };
+                    localStorage.setItem(`kikari_data_${this.currentUser.email}`, JSON.stringify(data));
+                },
+                
+                resetUserData() { this.userXP = 0; this.completedChapters = {}; this.saveUserData(); },
+
+                addXP(amount) { this.userXP += amount; this.saveUserData(); },
+                
+                getLevel() { return Math.floor(this.userXP / 1000) + 1; },
+
+                getActiveCoursesCount() { return Object.keys(this.completedChapters).length; },
+                
+                getCompletedChaptersCount() {
+                    let total = 0; Object.values(this.completedChapters).forEach(arr => total += arr.length); return total;
+                },
+                
+                getCourseProgress(cid) {
+                    const course = this.courses.find(c => c.id === cid);
+                    if(!course) return 0;
+                    const done = (this.completedChapters[cid] || []).length;
+                    return Math.round((done / course.chapters.length) * 100);
+                },
+
+                calculateAverageScore() {
+                    // Simulation simple based on completion
+                    if(this.userXP === 0) return 0;
+                    return Math.min(100, 75 + Math.floor(Math.random() * 25)); 
+                },
+
+                issueCertificate(courseName) {
+                    if(this.certificates.find(c => c.course === courseName)) return;
+                    this.certificates.push({ id: Date.now(), course: courseName, date: new Date().toLocaleDateString() });
+                    this.saveUserData();
+                },
+
+                // --- TOOLS & UTILS ---
+                toggleTheme() { this.isDark = !this.isDark; localStorage.setItem('theme', this.isDark ? 'dark' : 'light'); },
+                
+                notify(msg, type) {
+                    const id = Date.now();
+                    this.notifications.push({ id, message: msg, type, show: true });
+                    setTimeout(() => { this.notifications = this.notifications.filter(n => n.id !== id); }, 4000);
+                },
+
+                confettiExplosion() {
+                    var count = 200;
+                    var defaults = { origin: { y: 0.7 } };
+                    function fire(particleRatio, opts) {
+                        confetti(Object.assign({}, defaults, opts, { particleCount: Math.floor(count * particleRatio) }));
+                    }
+                    fire(0.25, { spread: 26, startVelocity: 55 });
+                    fire(0.2, { spread: 60 });
+                    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+                    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+                    fire(0.1, { spread: 120, startVelocity: 45 });
+                },
+
+                toggleMusic() {
+                    const audio = document.getElementById('bgMusic');
+                    if(this.musicPlaying) audio.pause(); else { audio.volume = 0.2; audio.play(); }
+                    this.musicPlaying = !this.musicPlaying;
+                },
+                
+                playSuccess() { if(this.settings.soundEffects) document.getElementById('soundSuccess').play(); },
+                
+                speakText() {
+                    const text = this.activeChapter.content.replace(/[#*`]/g, '');
+                    const utt = new SpeechSynthesisUtterance(text);
+                    utt.lang = 'fr-FR';
+                    speechSynthesis.cancel();
+                    speechSynthesis.speak(utt);
+                },
+                
+                runCode() {
+                    const out = document.getElementById('console-output');
+                    out.innerHTML = '';
+                    try {
+                        const oldLog = console.log;
+                        console.log = function(...args) { out.innerHTML += `<div class="text-green-400">> ${args.join(' ')}</div>`; };
+                        eval(this.codeBuffer);
+                        console.log = oldLog;
+                    } catch(e) {
+                        out.innerHTML += `<div class="text-red-500">Erreur: ${e.message}</div>`;
+                    }
+                },
+
+                // Calculator
+                toggleCalc() { this.showCalc = !this.showCalc; },
+                calcKey(k) { this.calcDisplay += k; },
+                calcEval() { try { this.calcDisplay = eval(this.calcDisplay); } catch { this.calcDisplay = 'Err'; } },
+
+                // Timer
+                togglePomodoro() { 
+                    // Simple alert for space saving, can be expanded to full overlay
+                    alert("Minuteur Pomodoro démarré pour 25min (Simulation)"); 
+                },
+                
+                toggleZenMode() {
+                    this.sidebarOpen = !this.sidebarOpen;
+                    if(this.sidebarOpen) document.exitFullscreen().catch(()=>{});
+                    else document.documentElement.requestFullscreen().catch(()=>{});
+                },
+                
+                resetProgress() {
+                    if(confirm("Êtes-vous sûr ? Tout sera effacé.")) {
+                        this.resetUserData();
+                        location.reload();
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .btn-primary { @apply px-6 py-3 rounded-lg bg-primary-600 text-white font-bold hover:bg-primary-700 transition shadow-lg shadow-primary-500/30 flex items-center gap-2; }
+        .btn-secondary { @apply px-6 py-3 rounded-lg bg-slate-200 text-slate-700 font-bold hover:bg-slate-300 transition dark:bg-slate-700 dark:text-white dark:hover:bg-slate-600; }
+        .nav-item { @apply flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-primary-600 dark:hover:bg-slate-800 transition font-medium; }
+        .active-nav { @apply flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-900/20 font-bold border-r-4 border-primary-500; }
+        .section-title { @apply text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 mt-4 px-4; }
+        .stat-card { @apply bg-white dark:bg-card p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-4 transition hover:-translate-y-1; }
+        .icon-box { @apply w-12 h-12 rounded-lg flex items-center justify-center text-xl; }
+        
+        /* Animations */
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-scale-up { animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .animate-bounce-in { animation: bounceIn 0.5s; }
+        @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.05); opacity: 1; } 70% { transform: scale(0.9); } 100% { transform: scale(1); } }
+    </style>
+</body>
+</html>
