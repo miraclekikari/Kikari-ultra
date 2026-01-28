@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kikari - Administration</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #00d26a; --bg: #0f172a; --card: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; padding: 20px; }
+        .admin-card { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 600px; margin: auto; }
+        h2 { color: var(--primary); text-align: center; }
+        .group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9em; color: #94a3b8; }
+        input, textarea { width: 100%; padding: 12px; box-sizing: border-box; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 8px; font-size: 16px; }
+        textarea { resize: vertical; min-height: 150px; font-family: monospace; }
+        button { width: 100%; padding: 15px; background: var(--primary); border: none; color: #000; font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:active { transform: scale(0.98); }
+        #status { text-align: center; padding: 20px; font-style: italic; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="status">⏳ Vérification des accès administrateur...</div>
+
+    <div id="admin-form" class="hidden">
+        <div class="admin-card">
+            <h2>🚀 Publier un Cours</h2>
+            
+            <div class="group">
+                <label>Titre du cours</label>
+                <input type="text" id="title" placeholder="Ex: Introduction aux Réseaux">
+            </div>
+
+            <div class="group">
+                <label>Catégorie</label>
+                <input type="text" id="category" placeholder="Ex: Réseaux / Informatique">
+            </div>
+
+            <div class="group">
+                <label>Image (URL Unsplash)</label>
+                <input type="text" id="image" placeholder="https://images.unsplash.com/...">
+            </div>
+
+            <div class="group">
+                <label>Contenu des chapitres (JSON)</label>
+                <textarea id="chapters_data" placeholder='[{"title": "Chapitre 1", "content": "..."}]'></textarea>
+            </div>
+
+            <button onclick="sauvegarderCours()">PUBLIER MAINTENANT</button>
+            <p style="text-align: center; font-size: 12px; color: #64748b; margin-top: 20px;">Connecté en tant qu'administrateur</p>
+        </div>
+    </div>
+
+    <script>
+        // 1. CONFIGURATION SUPABASE
+        const SUPABASE_URL = 'https://ubmewtlymrnbcamanjhs.supabase.co'; 
+        const SUPABASE_KEY = 'sb_publishable_EY6s8jOGhajZ_aBjQgLkdQ_58aiZhxO';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // 2. VÉRIFICATION SÉCURISÉE
+        async function checkAdmin() {
+            const { data: { user } } = await _supabase.auth.getUser();
+
+            if (!user) {
+                document.getElementById('status').innerHTML = "❌ Accès refusé. Connectez-vous d'abord.";
+                return;
+            }
+
+            // On vérifie le rôle dans la table profiles
+            const { data: profile } = await _supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single();
+
+            if (profile && profile.role === 'admin') {
+                document.getElementById('status').classList.add('hidden');
+                document.getElementById('admin-form').classList.remove('hidden');
+            } else {
+                document.getElementById('status').innerHTML = "🚫 Stop ! Vous n'avez pas les droits Admin.";
+            }
+        }
+
+        // 3. ENVOI DES DONNÉES
+        async function sauvegarderCours() {
+            const btn = document.querySelector('button');
+            const chaptersInput = document.getElementById('chapters_data').value;
+            
+            let chaptersJSON;
+            try {
+                chaptersJSON = JSON.parse(chaptersInput);
+            } catch (e) {
+                alert("Erreur dans le format JSON. Vérifie les virgules et les guillemets.");
+                return;
+            }
+
+            btn.innerText = "⏳ Publication...";
+            btn.disabled = true;
+
+            const { error } = await _supabase
+                .from('courses')
+                .insert([{
+                    title: document.getElementById('title').value,
+                    category: document.getElementById('category').value,
+                    image: document.getElementById('image').value,
+                    duration: '8h', // Par défaut
+                    chapters_data: chaptersJSON
+                }]);
+
+            if (error) {
+                alert("Erreur Supabase : " + error.message);
+                btn.disabled = false;
+                btn.innerText = "PUBLIER MAINTENANT";
+            } else {
+                alert("✅ Cours ajouté avec succès !");
+                window.location.href = 'index.html'; // Redirige vers le catalogue
+            }
+        }
+
+        // Lancement au chargement
+        checkAdmin();
+    </script>
+</body>
+</html>
