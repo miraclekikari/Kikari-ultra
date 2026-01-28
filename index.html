@@ -527,20 +527,16 @@
                             // Ici, on transforme les données simples de Supabase pour qu'elles matchent ton design complexe
                             // (C'est une adaptation temporaire car ta table Supabase est simple pour l'instant)
                             const coursesFromDB = data.map(dbCourse => ({
-                                id: dbCourse.id.toString(), // ID unique
-                                title: dbCourse.title,
-                                category: 'Nouveau',
-                                image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070', // Image par défaut
-                                duration: '? h',
-                                chapters: [
-                                    {
-                                        title: "Chapitre Unique",
-                                        readTime: 5,
-                                        content: dbCourse.content, // Le contenu HTML vient de Supabase
-                                        quiz: null // Pas de quiz pour l'instant dans la table simple
-                                    }
-                                ]
-                            }));
+    id: dbCourse.id.toString(),
+    title: dbCourse.title || "Cours sans titre",
+    category: dbCourse.category || 'Réseaux',
+    // On utilise l'image de Supabase, sinon une image par défaut
+    image: dbCourse.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070',
+    duration: dbCourse.duration || '1h',
+    // IMPORTANT : On récupère ici ton JSON complet que tu as collé dans Supabase
+    // Vérifie bien que le nom 'chapters_data' est celui de ta colonne (en anglais)
+    chapters: dbCourse.chapters_data || [] 
+}));
                             
                             // On ajoute les cours de la base de données à tes cours existants
                             this.courses = [...this.courses, ...coursesFromDB];
