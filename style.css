@@ -1,0 +1,80 @@
+/* style.css - Kikari UI System */
+:root {
+    --bg: #0f1214; --glass: rgba(30, 34, 40, 0.8);
+    --primary: #00ff88; --accent: #7000ff;
+    --text: #ffffff; --gray: #94a3b8;
+    --danger: #ff4757;
+    --verified: #1DA1F2; /* Bleu certification */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+
+body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow-x: hidden; padding-bottom: 80px; /* Espace pour la nav mobile */
+}
+
+/* --- ANIMATIONS & MOUVEMENT --- */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(0, 255, 136, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); } }
+
+.fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+/* --- NAVIGATION (Style Dock/App) --- */
+.app-shell { display: flex; height: 100vh; }
+
+/* Sidebar Desktop */
+.sidebar {
+    width: 250px; background: var(--glass); backdrop-filter: blur(15px);
+    border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column;
+    padding: 20px; position: fixed; height: 100%; z-index: 100;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-item {
+    display: flex; align-items: center; gap: 15px; padding: 15px;
+    color: var(--gray); text-decoration: none; border-radius: 12px;
+    transition: all 0.2s; cursor: pointer; margin-bottom: 5px;
+}
+.nav-item:hover, .nav-item.active { background: rgba(0, 255, 136, 0.1); color: var(--primary); transform: translateX(5px); }
+.nav-icon { font-size: 1.4rem; }
+
+/* --- SOCIAL FEED (Style Telegram/Youtube) --- */
+.main-content { margin-left: 250px; padding: 20px; width: calc(100% - 250px); }
+
+.post-card {
+    background: #161b22; border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px; padding: 20px; margin-bottom: 20px;
+    position: relative; overflow: hidden;
+}
+.post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; object-fit: cover; border: 2px solid var(--primary); }
+.verified-badge { color: var(--verified); font-size: 0.9em; margin-left: 4px; }
+
+/* --- SOUND & MUSIC PLAYER --- */
+.music-player-mini {
+    position: fixed; bottom: 20px; right: 20px; width: 300px;
+    background: rgba(0,0,0,0.9); border: 1px solid var(--primary);
+    padding: 15px; border-radius: 15px; z-index: 200;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+/* --- RESPONSIVE MOBILE (Barre en bas comme une App) --- */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%; height: 70px; bottom: 0; top: auto;
+        flex-direction: row; justify-content: space-around;
+        border-right: none; border-top: 1px solid rgba(255,255,255,0.1);
+        padding: 0; background: #0f1214;
+    }
+    .main-content { margin-left: 0; margin-bottom: 80px; width: 100%; }
+    .nav-text { display: none; } /* On cache le texte sur mobile */
+    .nav-item:hover { transform: none; background: transparent; }
+    .music-player-mini { width: 90%; right: 5%; bottom: 80px; }
+}
+
+/* --- BADGES & STATUS --- */
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: gray; display: inline-block; }
+.status-online { background: #00d26a; box-shadow: 0 0 8px #00d26a; }
